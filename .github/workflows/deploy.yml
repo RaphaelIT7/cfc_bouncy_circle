@@ -28,8 +28,8 @@ jobs:
         with:
           id: 3114940538
           changelog: ${{ inputs.changelog }}
-          type: Entity
-          tag1: fun
+          type: entity
+          tag1: Fun
         env:
           STEAM_USERNAME: ${{ secrets.WORKSHOP_UPLOADER_USERNAME }}
           STEAM_PASSWORD: ${{ secrets.WORKSHOP_UPLOADER_PASSWORD }}
