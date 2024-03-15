@@ -86,6 +86,9 @@ local function MakeTrampoline( ply, Data )
     ent:Spawn()
     ent:Activate()
 
+    local physObj = ent:GetPhysicsObject()
+    physObj:EnableMotion( false )
+
     duplicator.DoGenericPhysics( ent, ply, Data )
 
     if validPly then
