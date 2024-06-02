@@ -4,6 +4,7 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
 include( "shared.lua" )
+util.AddNetworkString( "CFC_BouncyCircle_PlayBounceSound" )
 
 local IN_JUMP = IN_JUMP
 local IsValid = IsValid
@@ -72,6 +73,10 @@ function ENT:Bounce( ent, theirPhys, speed )
     elseif not ent:IsNPC() then
         appliedVelocity = bounceOther( self, theirPhys, speed )
     end
+
+    net.Start( "CFC_BouncyCircle_PlayBounceSound" )
+    net.WriteEntity( self )
+    net.SendPAS( self:GetPos() )
 
     return appliedVelocity
 end
