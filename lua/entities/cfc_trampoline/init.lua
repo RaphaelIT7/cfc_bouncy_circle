@@ -76,7 +76,7 @@ function ENT:Bounce( ent, theirPhys, speed )
 
     net.Start( "CFC_BouncyCircle_PlayBounceSound" )
     net.WriteEntity( self )
-    net.SendPAS( self:GetPos() )
+    net.SendPAS( self:GetPos() + self:GetUp() * HEIGHT_TO_BOUNCY_SURFACE )
 
     return appliedVelocity
 end
