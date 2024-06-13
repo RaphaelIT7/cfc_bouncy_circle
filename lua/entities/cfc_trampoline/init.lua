@@ -12,42 +12,18 @@ local IsValid = IsValid
 -- this is so we get slightly above the trampoline
 -- because the GetPos returns a position near the ground, we get
 -- the point [self:GetUp()] * [HEIGHT_TO_BOUNCY_SURFACE] from it
-local HEIGHT_TO_BOUNCY_SURFACE = 29.5
+local HEIGHT_TO_BOUNCY_SURFACE = ENT.HEIGHT_TO_BOUNCY_SURFACE
 
 -- maximum radius the trampoline will allow
 -- this is used in DistToSqr
-local MAXIMUM_RADIUS = 60 ^ 2
+local MAXIMUM_RADIUS = ENT.MAXIMUM_RADIUS
 
 local flags = FCVAR_ARCHIVE + FCVAR_PROTECTED
 
-local MIN_SPEED = CreateConVar( "cfc_trampoline_min_speed", 180, flags, "Minimum speed required to bounce off of a trampoline", 0, 50000 )
-local BOUNCE_MIN = CreateConVar( "cfc_trampoline_bounce_min", 320, flags, "Minimum resulting speed of a bounce", 0, 50000 )
-local BOUNCE_MULT = CreateConVar( "cfc_trampoline_bounce_mult", 0.8, flags, "How much a player will be bounced up relative to their falling velocity", 0, 50000 )
-local BOUNCE_MULT_JUMPING = CreateConVar( "cfc_trampoline_bounce_mult_jumping", 1.2, flags, "How much a player will be bounced up relative to their falling velocity while holding their jump button", 0, 50000 )
-local BOUNCE_MAX = CreateConVar( "cfc_trampoline_bounce_max", 1500, flags, "Maximum resulting speed of a bounce", 0, 50000 )
+local MIN_SPEED = GetConVar( "cfc_trampoline_min_speed" )
+local BOUNCE_MIN = GetConVar( "cfc_trampoline_bounce_min" )
+local BOUNCE_MAX = GetConVar( "cfc_trampoline_bounce_max" )
 local BOUNCE_RECOIL = CreateConVar( "cfc_trampoline_bounce_mult_recoil", 0.4, flags, "The force multiplier applied in the opposite direction when bouncing on an unfrozen trampoline", 0, 50000 )
-
-local function bouncePlayer( trampoline, ply, plyPhys, speed )
-    if not IsValid( ply ) then return end
-    if not IsValid( plyPhys ) then return end
-
-    local isHoldingJump = ply:KeyDown( IN_JUMP )
-
-    local bounceMult = isHoldingJump and BOUNCE_MULT_JUMPING:GetFloat() or BOUNCE_MULT:GetFloat()
-    local bounceSpeed = math.min( speed * bounceMult, BOUNCE_MAX:GetFloat() )
-    local up = trampoline:GetUp()
-
-    local isUnfrozen = trampoline:GetPhysicsObject():IsMotionEnabled()
-    if isUnfrozen then
-        -- hacky solution to bounce players when the trampoline is unfrozen
-        plyPhys:SetPos( plyPhys:GetPos() + up * 5 )
-    end
-
-    local appliedVelocity = up * bounceSpeed
-    ply:SetVelocity( appliedVelocity )
-
-    return appliedVelocity
-end
 
 local function bounceOther( trampoline, entPhys, speed )
     if not IsValid( trampoline ) then return end
@@ -69,9 +45,9 @@ function ENT:Bounce( ent, theirPhys, speed )
 
     local appliedVelocity = vector_origin
     if ent:IsPlayer() then
-        appliedVelocity = bouncePlayer( self, ent, theirPhys, speed )
+        appliedVelocity = self:bouncePlayer( ent, theirPhys, speed )
     elseif not ent:IsNPC() then
-        appliedVelocity = bounceOther( self, theirPhys, speed )
+        appliedVelocity = bounceOther( theirPhys, speed )
     end
 
     net.Start( "CFC_BouncyCircle_PlayBounceSound" )
@@ -106,24 +82,6 @@ end
 
 duplicator.RegisterEntityClass( "cfc_trampoline", MakeTrampoline, "Data" )
 
-function ENT:isBouncyPart( position )
-    if not IsValid( self ) then return end
-
-    local trampolinePos = self:GetPos()
-    local trampolineUp = self:GetUp()
-    local bouncyOrigin = trampolinePos + trampolineUp * HEIGHT_TO_BOUNCY_SURFACE
-
-    local dist = position:DistToSqr( bouncyOrigin )
-    if dist > MAXIMUM_RADIUS then return false end -- Too far from center of the bouncy part
-
-    local bouncyToPos = ( position - bouncyOrigin ):GetNormalized()
-
-    local dot = bouncyToPos:Dot( trampolineUp )
-    if dot <= 0 then return false end -- Hitting from below
-
-    return true
-end
-
 function ENT:SpawnFunction( ply, tr )
     if not tr.Hit then return end
 
@@ -143,7 +101,7 @@ function ENT:PhysicsCollide( colData )
 end
 
 function ENT:StartTouch( ent )
-    if ent:IsWorld() then return end
+    if ent:IsWorld() or ent:IsPlayer() then return end
     if ent.Trampoline_Bouncing then return end
 
     local entVel = collisionVels[ent] or ent:GetVelocity()
