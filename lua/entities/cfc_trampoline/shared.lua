@@ -106,15 +106,15 @@ local ent_class = "cfc_trampoline"
 hook.Add( "SetupMove", "Trampoline_Prediction", function( ply, mv, cmd ) -- BUG: The ViewPunch is not predicted!
 	local ent = ply:GetGroundEntity()
 	local plyIndex = ply:EntIndex()
-	if ent != NULL then
+	if ent ~= NULL then
 		if ent:GetClass() == ent_class and ent:isBouncyPart( ply:GetPos() ) then
 			local lastVel = LAST_VELOCITY[ plyIndex ]
-			if !lastVel then
+			if not lastVel then
 				lastVel = mv:GetVelocity()
 			end
 
 			if CLIENT then
-				CL_NEWCOMMAND = cmd:TickCount() != CL_LAST_TICK
+				CL_NEWCOMMAND = cmd:TickCount() ~= CL_LAST_TICK
 				if ( not CL_NEWCOMMAND and not IsFirstTimePredicted() ) and CL_LAST_VELOCITY then -- We already calculated it :D
 					mv:SetVelocity( CL_LAST_VELOCITY )
 					return
