@@ -47,7 +47,7 @@ function ENT:Bounce( ent, theirPhys, speed )
     if ent:IsPlayer() then
         appliedVelocity = self:bouncePlayer( ent, theirPhys, speed )
     elseif not ent:IsNPC() then
-        appliedVelocity = bounceOther( theirPhys, speed )
+        appliedVelocity = bounceOther( self, theirPhys, speed )
     end
 
     net.Start( "CFC_BouncyCircle_PlayBounceSound" )
