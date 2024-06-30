@@ -48,6 +48,7 @@ function ENT.bouncePlayer( trampoline, ply, plyPhys, speed )
     local bounceMult = isHoldingJump and BOUNCE_MULT_JUMPING:GetFloat() or BOUNCE_MULT:GetFloat()
     local bounceSpeed = math.min( speed * bounceMult, BOUNCE_MAX:GetFloat() )
     local up = trampoline:GetUp()
+    local appliedVelocity = up * bounceSpeed
 
     local isUnfrozen = SERVER and trampoline:GetPhysicsObject():IsMotionEnabled() or false
     if isUnfrozen then
@@ -55,9 +56,6 @@ function ENT.bouncePlayer( trampoline, ply, plyPhys, speed )
         -- Raphael: This breaks prediction. Is this really needed?
         plyPhys:SetPos( plyPhys:GetPos() + up * 5 )
     end
-
-    local appliedVelocity = up * bounceSpeed
-    ply:SetVelocity( appliedVelocity )
 
     if SERVER then
     	SOUND_FILTER:RemoveAllPlayers()
